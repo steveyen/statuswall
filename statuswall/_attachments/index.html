@@ -11,6 +11,7 @@
 </head>
 <style>
 body {
+  height: 3000px;
   background-color: black;
   color: white;
   font-family: Helvetica;
@@ -31,8 +32,9 @@ body {
   width: 410px;
   margin: 5px 5px 5px 5px;
   padding: 10px 20px 10px 20px;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.9);
   color: black;
+  z-inde: 1;
 }
 .statusForm > * {
   display: block;
@@ -62,6 +64,11 @@ body {
 em { color: red; }
 </style>
 <body>
+<div class="page view">
+  <div class="origin view">
+    <div id="camera" class="camera view"></div>
+  </div>
+</div>
 <form id="statusForm" class="statusForm">
   <label for="name">your name
     <span class="hint">(github id preferred)</span></label>
@@ -71,15 +78,8 @@ em { color: red; }
   <textarea id="status" name="status"></textarea>
   <input type="submit" name="OK"/>
 </form>
-<div id="names"></div>
-<pre id="history"></pre>
-<div class="page view">
-  <div class="origin view">
-    <div id="camera" class="camera view"></div>
-  </div>
-</div>
 <div class="caption">
-  arrow keys to move, space toggles magnify
+  arrow keys to move the wall
 </div>
 </body>
 <script>
@@ -119,9 +119,7 @@ $(document).ready(function() {
       return docToHTML(doc);
     });
 
-    $("#history").html(h.join("\n"));
-
-    $("#names").html(mapKeys(names).join("\n") + " | " + dates.join(','));
+    snowstack_init(h);
   }
 
   function docToHTML(doc) {
@@ -165,56 +163,16 @@ $(document).ready(function() {
       }
     } else {
       alert("Who are you?\nPlease enter your name.");
+      $("#name").focus();
     }
     return false;
   });
-
-  $("#name").focus();
 
   function mapKeys(m) {
     var h = [];
     for (var k in m) { h[h.length] = k; }
     return h.sort();
   }
-
-    var h = [];
-    for (var i = 0; i < 100; i++) {
-      h[h.length] = "hello " + i +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br><b>saldkfjas flkasjf</b> lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br><b>saldkfjas flkasjf</b> lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf" +
-        " <br>saldkfjas flkasjf lkasdjf";
-    }
-	snowstack_init(h);
 });
 </script>
 </html>

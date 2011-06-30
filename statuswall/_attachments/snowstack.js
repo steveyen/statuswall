@@ -24,8 +24,6 @@ var CYSPACING;
 
 var snowstack_options = {
 	rows: 1,
-	refreshzoom: true,
-	captions: false
 };
 
 var vfx = {
@@ -67,13 +65,10 @@ var cells = [];
 
 var dolly;
 var camera;
-var caption;
 
 var cellstack;
-var reflectionstack;
 
 var magnifyMode;
-var newbieUser = true;
 
 var zoomTimer = null;
 var currentTimer = null;
@@ -111,84 +106,6 @@ function layoutElement(elem, iwidth, iheight)
 
 //////////////////////
 
-var currentVideo = null;
-
-function play_video(newVideo)
-{
-	if (currentVideo && !currentVideo.isPaused())
-	{
-		currentVideo.setMuted(true);
-	}
-
-	currentVideo = newVideo;
-
-	currentVideo.setMuted(false);
-	currentVideo.play();
-}
-
-//////////////////////
-
-function html5video(elem, cell)
-{
-	var video = vfx.elem("video", { "class": "media" });
-
-	var videolayout = function (e)
-	{
-		layoutElement(video, video.videoWidth, video.videoHeight);
-		elem.parentNode.appendChild(video);
-		elem.parentNode.removeChild(elem);
-		return false;
-	};
-
-	var playstarter = function (e)
-	{
-		play_video(cell.video);
-		return false;
-	};
-
-	video.addEventListener("loadedmetadata", videolayout, false);
-	video.addEventListener("canplay", playstarter, false);
-	video.src = cell.info.video;
-	video.load();
-
-	cell.video = {
-		play: function () { video.play(); },
-		pause: function () { video.pause(); },
-		isPaused: function () { return video.paused; },
-		setMuted: function (muted) { video.muted = muted; },
-		isMuted: function () { return video.muted; }
-	};
-}
-
-//////////////////////
-
-function refreshImage(elem, cell)
-{
-	if (zoomTimer)
-	{
-		clearTimeout(zoomTimer);
-	}
-
-	if (cell.video)
-	{
-		if (cell.video.isPaused() || cell.video.isMuted())
-		{
-			play_video(cell.video);
-		}
-		return;
-	}
-
-	zoomTimer = setTimeout(function ()
-	{
-		if (cell.info.zoom && !cell.video)
-		{
-			elem.src = cell.info.zoom;
-		}
-
-		zoomTimer = null;
-	}, 2000);
-}
-
 function setcellclass(c, name)
 {
 	c.div.className = name;
@@ -196,7 +113,8 @@ function setcellclass(c, name)
 
 function snowstack_update(newIndex, newmagnifymode)
 {
-	if (currentCellIndex == newIndex && magnifyMode == newmagnifymode)
+	if (currentCellIndex == newIndex &&
+        magnifyMode == newmagnifymode)
 	{
 		return;
 	}
@@ -220,28 +138,11 @@ function snowstack_update(newIndex, newmagnifymode)
 
 	if (magnifyMode)
 	{
-		// User figured out magnify mode, not a newbie.
-		if (newbieUser)
-		{
-			newbieUser = false;
-		}
-
 		cell.div.className = "cell magnify";
-
-		if (snowstack_options.refreshzoom)
-		{
-			refreshImage(cell.divimage, cell);
-		}
 	}
 	else
 	{
 		setcellclass(cell, "cell selected");
-	}
-
-	// Show the photo caption
-	if (snowstack_options.captions && !newbieUser)
-	{
-		caption.innerText = cell.info.title;
 	}
 
 	dolly.style.webkitTransform = cameraTransformForCell(newIndex);
@@ -259,8 +160,7 @@ function snowstack_update(newIndex, newmagnifymode)
 		clearTimeout(currentTimer);
 	}
 
-	currentTimer = setTimeout(function ()
-	{
+	currentTimer = setTimeout(function() {
 		camera.style.webkitTransform = "rotateY(0)";
 		camera.style.webkitTransitionDuration = "5s";
 	}, 330);
@@ -338,57 +238,19 @@ function snowstack_sort(sortkey)
 	}
 }
 
-function snowstack_startsearch()
-{
-	camera.style.webkitTransform = 'translate3d(0, 0, -500px)';
-	camera.style.webkitTransitionDuration = "1s";
-}
-
-function snowstack_endsearch()
-{
-	camera.style.webkitTransform = '';
-}
-
-function snowstack_search(searchkey, searchterm)
-{
-	if (searchterm.length)
-	{
-		snowstack_startsearch();
-	}
-	else
-	{
-		snowstack_endsearch();
-	}
-
-	var s_re = new RegExp(searchterm, "i");
-
-	for (var i = 0; i < cells.length; ++i)
-	{
-		var match;
-		if (searchterm.length)
-		{
-			match = cells[i].info[searchkey].search(s_re) != -1;
-		}
-		else
-		{
-			match = true;
-		}
-		cells[i].div.style.opacity = match ? 1 : 0.2;
-	}
-}
-
 global.snowstack_init = function(imagefun, options)
 {
+    currentCellIndex = -1;
+    cells = [];
+    magnifyMode = false;
+
 	var loading = true;
 
 	camera = vfx.byid("camera");
 
-	reflectionstack = vfx.elem("div", { "class": "view" });
-	var mirror = vfx.elem("div", { "class": "view" }, reflectionstack);
 	cellstack = vfx.elem("div", { "class": "view" });
 	dolly = vfx.elem("div", { "class": "dolly view" });
 	dolly.appendChild(cellstack);
-	dolly.appendChild(mirror);
 
 	while (camera.hasChildNodes())
 	{
@@ -422,10 +284,6 @@ global.snowstack_init = function(imagefun, options)
 	CXSPACING = CWIDTH + CGAP;
 	CYSPACING = CHEIGHT + CGAP;
 
-	mirror.style.webkitTransform =
-      "scaleY(-1.0) " +
-      vfx.translate3d(0, - CYSPACING * (snowstack_options.rows * 2) - 1, 0);
-
 	imagefun(function (images) {
 		images.forEach(snowstack_addimage);
 		snowstack_update(Math.floor(snowstack_options.rows / 2), false);
@@ -456,16 +314,6 @@ global.snowstack_init = function(imagefun, options)
 			if ((newCellIndex + snowstack_options.rows) < cells.length)
 			{
 				newCellIndex += snowstack_options.rows;
-			}
-			else if (!loading)
-			{
-				/* We hit the right wall, add some more */
-				loading = true;
-				imagefun(function (images)
-				{
-					images.forEach(snowstack_addimage);
-					loading = false;
-				});
 			}
 		}
 		if (keys.up)
@@ -509,6 +357,10 @@ global.snowstack_init = function(imagefun, options)
 	/* Limited keyboard support for now */
 	window.addEventListener('keydown', function (e)
 	{
+        if (e.target.tagName == "INPUT" ||
+            e.target.tagName == "TEXTAREA")
+            return false;
+
 		if (e.keyCode == 32)
 		{
 			/* Magnify toggle with spacebar */
@@ -524,6 +376,10 @@ global.snowstack_init = function(imagefun, options)
 
 	window.addEventListener('keyup', function (e)
 	{
+        if (e.target.tagName == "INPUT" ||
+            e.target.tagName == "TEXTAREA")
+            return false;
+
 		keys[keymap[e.keyCode]] = false;
 		keycheck();
 	});
