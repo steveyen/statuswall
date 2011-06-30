@@ -38,28 +38,50 @@ body {
 }
 .statusForm > * {
   display: block;
+  font-size: 10pt;
+}
+.statusBody > * {
+  display: block;
   margin: 10px 40px 30px 0px;
   font-size: 10pt;
 }
-.statusForm label {
+.statusBody label {
   margin: 30px 40px 0px 0px;
   font-size: 20pt;
 }
-.statusForm textarea {
+.statusBody textarea {
   width: 400px;
   height: 9em;
 }
-.statusForm input[type=text] {
+.statusBody input[type=text] {
   width: 300px;
 }
-.statusForm input[type=submit] {
+.statusBody input[type=submit] {
   margin-left: 250px;
   width: 150px;
 }
-.statusForm span.hint {
+.statusBody span.hint {
   padding-left: 20px;
   font-size: 8pt;
   color: #999;
+}
+.statusForm .statusPop {
+  float: right;
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+  color: #666;
+}
+.statusForm.unpopped {
+  width: 10px;
+  height: 10px;
+  -webkit-transition-property: width,height;
+  -webkit-transition-duration: 500ms;
+}
+.statusForm.unpopped .statusBody {
+  opacity: 0;
+  -webkit-transition-property: opacity;
+  -webkit-transition-duration: 1000ms;
 }
 em { color: red; }
 </style>
@@ -70,13 +92,16 @@ em { color: red; }
   </div>
 </div>
 <form id="statusForm" class="statusForm">
-  <label for="name">your name
-    <span class="hint">(github id preferred)</span></label>
-  <input type="text" id="name" name="name"/>
-  <label for="status">your status
-    <span class="hint">(blockers, yesterday, today)</span></label>
-  <textarea id="status" name="status"></textarea>
-  <input type="submit" name="OK"/>
+  <a href="#" id="statusPop" class="statusPop">&#x271C;</a>
+  <div class="statusBody">
+    <label for="name">your name
+      <span class="hint">(github id preferred)</span></label>
+    <input type="text" id="name" name="name"/>
+    <label for="status">your status
+      <span class="hint">(blockers, yesterday, today)</span></label>
+    <textarea id="status" name="status"></textarea>
+    <input type="submit" name="OK"/>
+  </div>
 </form>
 <div class="caption">
   arrow keys to move the wall
@@ -130,7 +155,7 @@ $(document).ready(function() {
             .replace(/blocked/ig, "<em>BLOCKED</em>")
             .replace("\n", "<br/>");
 
-    return "<pre>" + s + "</pre>";
+    return "<pre>" + doc.name + "\n\n" + s + "</pre>";
   }
 
   $("form").submit(function(event) {
@@ -166,6 +191,10 @@ $(document).ready(function() {
       $("#name").focus();
     }
     return false;
+  });
+
+  $(".statusPop").click(function(event) {
+    $(".statusForm").toggleClass("unpopped");
   });
 
   function mapKeys(m) {
