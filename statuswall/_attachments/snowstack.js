@@ -5,12 +5,14 @@
 	This source code is available under Apache License 2.0.
 
 	Performance Notes (courtesy of Apple):
-		on leopard, animating transforms with a transform list > 1 function, animation falls back to software
-		shadows (and animated shadows) plus border animations can cause additional redraws
-		offsetWidth / offsetHeight should be avoided.
+
+		on leopard, animating transforms with a transform list > 1
+		function, animation falls back to software shadows (and
+		animated shadows) plus border animations can cause additional
+		redraws offsetWidth / offsetHeight should be avoided.
 */
 
-// (function () {  // Module pattern
+// (function () { // Module pattern
 
 var global = this;
 
@@ -190,37 +192,6 @@ function refreshImage(elem, cell)
 function setcellclass(c, name)
 {
 	c.div.className = name;
-	if (c.reflection)
-	{
-		c.reflection.className = name;
-	}
-}
-
-function snowstack_togglemedia(index)
-{
-	var cell = cells[index];
-
-	if (cell.video)
-	{
-		if (cell.video.isPaused())
-		{
-			play_video(cell.video);
-		}
-		else
-		{
-			cell.video.pause();
-		}
-		return;
-	}
-
-	if (cell.info.videoloader)
-	{
-		cell.info.videoloader(cell.divimage, cell);
-	}
-	else if (cell.info.video)
-	{
-		html5video(cell.divimage, cell);
-	}
 }
 
 function snowstack_update(newIndex, newmagnifymode)
@@ -319,42 +290,18 @@ function snowstack_addimage(info)
 
 	cell.div = make_celldiv();
 
-	cell.divimage = vfx.elem("div", { "class": "media" });
+	cell.divbody = vfx.elem("div", { "class": "media" });
 
-        // layoutElement(cell.divimage, cell.divimage.width, cell.divimage.height);
-		layoutElement(cell.divimage, 600, 200);
+    layoutElement(cell.divbody, 600, 200); // el, width, height
 
-        cell.divimage.innerHTML = info;
+    cell.divbody.innerHTML = info;
 
-		cell.div.style.opacity = 1.0;
+    cell.div.style.opacity = 1.0;
 
-        cell.div.appendChild(vfx.elem("div", { "class": "mover view" },
-                                      cell.divimage));
+    cell.div.appendChild(vfx.elem("div", { "class": "mover view" },
+                                  cell.divbody));
 
 	cellstack.appendChild(cell.div);
-
-	// cell.divimage.src = info.thumb;
-
-	if (y == (snowstack_options.rows - 1) && false)
-	{
-		cell.reflection = make_celldiv();
-
-		cell.reflectionimage = vfx.elem("img", { "class": "media reflection" });
-
-		vfx.loadhandler(cell.reflectionimage, function ()
-		{
-			layoutElement(cell.reflectionimage,
-                          cell.reflectionimage.width,
-                          cell.reflectionimage.height);
-			cell.reflection.appendChild(vfx.elem("div", { "class": "mover view" },
-                                                 cell.reflectionimage));
-			cell.reflection.style.opacity = 1.0;
-		});
-
-		cell.reflection.style.opacity = 0;
-		reflectionstack.appendChild(cell.reflection);
-		cell.reflectionimage.src = info.thumb;
-	}
 }
 
 function snowstack_sort(sortkey)
@@ -386,7 +333,8 @@ function snowstack_sort(sortkey)
 		// down then across
 		var x = Math.floor(i / snowstack_options.rows);
 		var y = i - x * snowstack_options.rows;
-		cells[i].div.style.webkitTransform = vfx.translate3d(x * CXSPACING, y * CYSPACING, 0);
+		cells[i].div.style.webkitTransform =
+          vfx.translate3d(x * CXSPACING, y * CYSPACING, 0);
 	}
 }
 
@@ -565,11 +513,6 @@ global.snowstack_init = function(imagefun, options)
 		{
 			/* Magnify toggle with spacebar */
 			snowstack_update(currentCellIndex, !magnifyMode);
-		}
-		else if (e.keyCode == 13)
-		{
-			/* Toggle video playback */
-			snowstack_togglemedia(currentCellIndex);
 		}
 		else
 		{
