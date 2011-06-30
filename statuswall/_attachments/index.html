@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>statuswall</title>
+  <link rel="stylesheet" href="style/main.css" type="text/css">
+  <link rel="stylesheet" href="style/snowstack.css" type="text/css">
+  <script src="/_utils/script/json2.js"></script>
+  <script src="/_utils/script/jquery.js?1.4.2"></script>
+  <script src="/_utils/script/jquery.couch.js?0.11.0"></script>
+  <script src="snowstack.js"></script>
+</head>
+<style>
+body {
+  background-color: black;
+  color: white;
+  font-family: Helvetica;
+}
+.caption {
+  position: fixed;
+  bottom: 0; right: 0; left: 0;
+  color: #999;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 5px 10pt 5px 10pt;
+  font-size: 8pt;
+  text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+}
+.statusForm {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 410px;
+  margin: 5px 5px 5px 5px;
+  padding: 10px 20px 10px 20px;
+  background-color: white;
+  color: black;
+}
+.statusForm > * {
+  display: block;
+  margin: 10px 40px 30px 0px;
+  font-size: 10pt;
+}
+.statusForm label {
+  margin: 30px 40px 0px 0px;
+  font-size: 20pt;
+}
+.statusForm textarea {
+  width: 400px;
+  height: 9em;
+}
+.statusForm input[type=text] {
+  width: 300px;
+}
+.statusForm input[type=submit] {
+  margin-left: 250px;
+  width: 150px;
+}
+.statusForm span.hint {
+  padding-left: 20px;
+  font-size: 8pt;
+  color: #999;
+}
+em { color: red; }
+</style>
+<body>
+<form id="statusForm" class="statusForm">
+  <label for="name">your name
+    <span class="hint">(github id preferred)</span></label>
+  <input type="text" id="name" name="name"/>
+  <label for="status">your status
+    <span class="hint">(blockers, yesterday, today)</span></label>
+  <textarea id="status" name="status"></textarea>
+  <input type="submit" name="OK"/>
+</form>
+<div id="names"></div>
+<pre id="history"></pre>
+<div class="page view">
+  <div class="origin view">
+    <div id="camera" class="camera view"></div>
+  </div>
+</div>
+<div class="caption">
+  arrow keys to move, space toggles magnify
+</div>
+</body>
+<script>
+var dbName = "statuswall";
+
+$(document).ready(function() {
+  var db = $.couch.db(dbName);
+
+  populate();
+
+  function populate() {
+    db.allDocs({
+      include_docs: 'true',
+      end_key: '"_"', // Don't want design docs.
+      success: function(res) {
+        populateDocs($.map(res.rows || [], function(row) {
+          return row.doc;
+        }));
+      }
+    });
+  }
+
+  function populateDocs(docs) {
+    var names = {}; // Unique names, with key of name, value is [docHTML, docHTML].
+    var dates = []; // Unique dates.
+
+    var h = $.map(docs, function(doc) {
+      var docsForName = names[doc.name] = names[doc.name] || [];
+      docsForName[docsForName.length] = doc;
+
+      var date = doc._id.split("_")[0];
+      if (date != null &&
+          date > (dates[dates.length - 1] || "")) {
+        dates[dates.length] = date;
+      }
+
+      return docToHTML(doc);
+    });
+
+    $("#history").html(h.join("\n"));
+
+    $("#names").html(mapKeys(names).join("\n") + " | " + dates.join(','));
+  }
+
+  function docToHTML(doc) {
+    var s = doc.status
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace(/blocked/ig, "<em>BLOCKED</em>")
+            .replace("\n", "<br/>");
+
+    return "<pre>" + s + "</pre>";
+  }
+
+  $("form").submit(function(event) {
+    var name = $("#name").val();
+    var status = $("#status").val();
+    if (name != null && name.length > 0) {
+      var now = new Date().toJSON(); // Ex: 2011-06-28T06:22:42.384Z
+      var id  = now.slice(0, 10)  + "_" + name;
+
+      db.openDoc(id, {
+        success: function(doc) { save(doc._rev); },
+        error:   function()    { save(null); }
+      });
+
+      function save(rev) {
+        if (rev && !confirm("Replace existing status?")) {
+          return;
+        }
+        var doc = {
+          _id    : id,
+          name   : name,
+          status : status
+        };
+        if (rev) {
+          doc._rev = rev;
+        }
+        db.saveDoc(doc, {
+          success: populate
+        });
+      }
+    } else {
+      alert("Who are you?\nPlease enter your name.");
+    }
+    return false;
+  });
+
+  $("#name").focus();
+
+  function mapKeys(m) {
+    var h = [];
+    for (var k in m) { h[h.length] = k; }
+    return h.sort();
+  }
+});
+</script>
+</html>
