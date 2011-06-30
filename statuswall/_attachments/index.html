@@ -152,8 +152,11 @@ $(document).ready(function() {
             .replace("&", "&amp;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
-            .replace(/blocked/ig, "<em>BLOCKED</em>")
             .replace("\n", "<br/>");
+
+    if (s.search(/not blocked/i) < 0) {
+       s = s.replace(/blocked/ig, "<em>BLOCKED</em>")
+    }
 
     return "<pre>" + doc.name + "\n\n" + s + "</pre>";
   }
